@@ -190,9 +190,9 @@ object Lab1Implementations{
 
         Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
 
-        //DataframeImp(false)
-        RDDImp("segment/100_segment", true)
-
+        DataframeImp("segment/100_segment", false)
+        // RDDImp("segment/10_segment", true)
+        
         spark.stop()
 
     }
