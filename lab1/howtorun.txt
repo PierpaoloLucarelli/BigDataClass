@@ -1,0 +1,9 @@
+-----------------------------------------------
+How to run the RDD and Dataframe implementation
+-----------------------------------------------
+
+
+- 1 create folder called segment in the root directory (same as build.sbt). In this folder you can create new folders like 1_segment 10_segment 50_segment and 100_segment where you can place the right amount of segments in each folder. ALternatively you can change the path of the input data directly from the code. 
+
+- 2 in the Main method of lab1.scala you will find two methods: DataframeImp() and RDDImp(). You can uncomment the method that you wish to run.
+

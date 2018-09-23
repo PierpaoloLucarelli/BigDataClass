@@ -125,9 +125,7 @@ object Lab1Implementations{
 
         val sorted = perDay.mapValues(x => x.toList.sortBy(x => -x._2).take(10))
 
-        val sqlContext = new SQLContext(sc)
-        import sqlContext.implicits._
-        sorted.toDF().show()
+        sorted.collect().foreach(println)
 
         spark.stop
     }
@@ -190,7 +188,7 @@ object Lab1Implementations{
 
         Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
 
-        DataframeImp("segment/100_segment", false)
+        DataframeImp("segment/1_segment", false)
         // RDDImp("segment/10_segment", true)
         
         spark.stop()
