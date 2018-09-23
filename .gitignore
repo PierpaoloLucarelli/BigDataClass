@@ -2,3 +2,6 @@ segment/
 project/
 target/
 spark-warehouse/
+local_index.txt
+get_data
+gdeltv2gkg.txt
