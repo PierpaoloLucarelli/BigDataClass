@@ -182,14 +182,21 @@ object Lab2Implementations{
         spark.stop
     }
 
+    def simpleImplementation(){
+        println("CLUSTER WORKING: HELLO WORLD");
+    }
+
     def main(args: Array[String]){
 
         println("WELCOME TO GDELT")
 
         Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
 
+        // simpleImplementation()
+        DataframeImp("s3://gdelt-open-data/v2/gkg/20150218230000.gkg.csv", false)
         // For accesing a S3 bucket: s3n://<bucket>/path
-        DataframeImp("segment/1_segment", false)
+        // DataframeImp("segment/1_segment", false)
+        // DataframeImp("", false)
         // RDDImp("segment/10_segment", true)
         
         spark.stop()
