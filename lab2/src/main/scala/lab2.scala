@@ -18,7 +18,7 @@ object Lab2Implementations{
     val spark = SparkSession
         .builder()
         .appName("GDELThist")
-        .config("spark.master", "local")
+        //.config("spark.master", "local")
         .getOrCreate()
 
     import spark.implicits._
@@ -178,8 +178,9 @@ object Lab2Implementations{
         println("=============================")
 
         top_ds.take(1).foreach(r => println(r.get(1)))
+        top_ds.write.json("~/result") // change with s3 path
 
-        spark.stop
+        //spark.stop
     }
 
     def simpleImplementation(){
@@ -200,6 +201,7 @@ object Lab2Implementations{
         // RDDImp("segment/10_segment", true)
         
         spark.stop()
+        sc.stop()
 
     }
 
