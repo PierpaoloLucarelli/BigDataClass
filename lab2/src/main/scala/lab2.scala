@@ -193,12 +193,23 @@ object Lab2Implementations{
 
         Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
 
-        // simpleImplementation()
-        DataframeImp("s3://gdelt-open-data/v2/gkg/20150218230000.gkg.csv", false)
-        // For accesing a S3 bucket: s3n://<bucket>/path
-        // DataframeImp("segment/1_segment", false)
-        // DataframeImp("", false)
-        // RDDImp("segment/10_segment", true)
+        if(args.length == 1){
+            if(args(0) == "small"){
+                DataframeImp("s3://gdelt-open-data/v2/gkg/20150218230000.gkg.csv", false)
+            }else if(args(0) == "medium"){
+                DataframeImp("s3://gdelt-open-data/v2/gkg/201502*", false)
+            }else if(args(0) == "large"){
+                DataframeImp("s3://gdelt-open-data/v2/gkg/2015*", false)
+            }else if(args(0) == "full"){
+                DataframeImp("s3://gdelt-open-data/v2/gkg/*", false)
+            }else if(args(0) == "hello"){
+                simpleImplementation()
+            }else{
+                println("wrong argument")
+            }
+        }else{
+            println("NEED TO PROVIDE THE SIZE TO TRY AS AN ARGUMENT (small,medium, large, full, hello)")
+        }
         
         spark.stop()
         sc.stop()
