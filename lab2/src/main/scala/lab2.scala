@@ -170,15 +170,20 @@ object Lab2Implementations{
             .withColumn("topTenTopics", getTopTenUDF($"topicCountsTuples"))
             .select("date", "topTenTopics")
 
-        println("=============================")
-        println("=== GENERAL INFO: TOP TEN ===")
-        println("Number of records of Dataset: " + top_ds.count())
-        top_ds.printSchema()
-        top_ds.show(10)
-        println("=============================")
+        if (detailedPrinting){
+            println("=============================")
+            println("=== GENERAL INFO: TOP TEN ===")
+            println("Number of records of Dataset: " + top_ds.count())
+            top_ds.printSchema()
+            top_ds.show(10)
+            println("=============================")
+        }
+        
+        //top_ds.take(1).foreach(r => println(r.get(1)))
 
-        top_ds.take(1).foreach(r => println(r.get(1)))
-        top_ds.write.json("~/result") // change with s3 path
+        top_ds.foreach(r => println(r))
+
+        // top_ds.write.json("~/result/" + System.currentTimeMillis/1000) // change with s3 path
 
         //spark.stop
     }
@@ -194,6 +199,8 @@ object Lab2Implementations{
         Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
 
         if(args.length == 1){
+            
+            println("CONFIG: " + args(0))
             if(args(0) == "small"){
                 DataframeImp("s3://gdelt-open-data/v2/gkg/20150218230000.gkg.csv", false)
             }else if(args(0) == "medium"){
@@ -204,6 +211,8 @@ object Lab2Implementations{
                 DataframeImp("s3://gdelt-open-data/v2/gkg/*", false)
             }else if(args(0) == "hello"){
                 simpleImplementation()
+            }else if(args(0) == "local"){
+                DataframeImp("segment/1_segment", false)
             }else{
                 println("wrong argument")
             }
@@ -211,6 +220,8 @@ object Lab2Implementations{
             println("NEED TO PROVIDE THE SIZE TO TRY AS AN ARGUMENT (small,medium, large, full, hello)")
         }
         
+        println("GOODBYE!")
+
         spark.stop()
         sc.stop()
 
