@@ -15,10 +15,20 @@ object Lab2Implementations{
 
     // Spark initialization
 
+    // config objects
+    val nCores =  4 // number of CPUs on a worker node
+    val nInstances = 1 // number of worker nodes on a cluster
+    val executorMemory = "1g" // max memory available on a worker node - overheads in megabytes (e.g. 2g, 8g)
+    val levelOfParallelism = 4 // 2 * number of CPUs in total on worker nodes
+
     val spark = SparkSession
         .builder()
         .appName("GDELThist")
-        //.config("spark.master", "local")
+        .config("spark.master", "local")
+        .config("spark.default.parallelism", levelOfParallelism)
+        .config("spark.executor.memory", executorMemory)
+        .config("spark.executor.instances", nInstances)
+        .config("spark.executor.cores", nCores)
         .getOrCreate()
 
     import spark.implicits._
