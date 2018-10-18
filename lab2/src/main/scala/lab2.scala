@@ -1,5 +1,10 @@
 package gdelt
 
+
+// optimiser stuff
+import com.esotericsoftware.kryo.Kryo
+import org.apache.spark.serializer.KryoRegistrator
+
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.types._
 import org.apache.log4j.{Level, Logger}
@@ -10,15 +15,14 @@ import org.apache.spark.sql.functions._
 import scala.collection.mutable.WrappedArray
 
 
-
 object Lab2Implementations{
-
-    // Spark initialization
 
     val spark = SparkSession
         .builder()
         .appName("GDELThist")
-        //.config("spark.master", "local")
+        // .config("spark.master", "local")
+        .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+        .config("spark.kryoserializer.buffer.mb","24")
         .getOrCreate()
 
     import spark.implicits._
