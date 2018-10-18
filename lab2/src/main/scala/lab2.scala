@@ -207,13 +207,13 @@ object Lab2Implementations{
                 if(args(0) == "small"){
                     DataframeImp("s3://gdelt-open-data/v2/gkg/20150218230000.gkg.csv", false)
                 }else if(args(0) == "medium"){
-                    DataframeImp("s3://gdelt-open-data/v2/gkg/201502*", false)
+                    DataframeImp("s3://gdelt-open-data/v2/gkg/201502.*", false)
                 }else if(args(0) == "large"){
-                    DataframeImp("s3://gdelt-open-data/v2/gkg/20150[1-6]*", false)
+                    DataframeImp("s3://gdelt-open-data/v2/gkg/20150[1-6].*", false)
                 }else if(args(0) == "xlarge"){
-                    DataframeImp("s3://gdelt-open-data/v2/gkg/2015*", false)
+                    DataframeImp("s3://gdelt-open-data/v2/gkg/2015.*", false)
                 }else if(args(0) == "full"){
-                    DataframeImp("s3://gdelt-open-data/v2/gkg/*", false)
+                    DataframeImp("s3://gdelt-open-data/v2/gkg/.*", false)
                 }else if(args(0) == "hello"){
                     simpleImplementation()
                 }else if(args(0) == "local"){
@@ -225,13 +225,13 @@ object Lab2Implementations{
                 if(args(0) == "small"){
                     RDDImp("s3://gdelt-open-data/v2/gkg/20150218230000.gkg.csv", false)
                 }else if(args(0) == "medium"){
-                    RDDImp("s3://gdelt-open-data/v2/gkg/201502*", false)
+                    RDDImp("s3://gdelt-open-data/v2/gkg/201502.*", false)
                 }else if(args(0) == "large"){
-                    RDDImp("s3://gdelt-open-data/v2/gkg/20150[1-6]*", false)
+                    RDDImp("s3://gdelt-open-data/v2/gkg/20150[1-6].*", false)
                 }else if(args(0) == "xlarge"){
-                    RDDImp("s3://gdelt-open-data/v2/gkg/2015*", false)
+                    RDDImp("s3://gdelt-open-data/v2/gkg/2015.*", false)
                 }else if(args(0) == "full"){
-                    RDDImp("s3://gdelt-open-data/v2/gkg/*", false)
+                    RDDImp("s3://gdelt-open-data/v2/gkg/.*", false)
                 }else if(args(0) == "hello"){
                     simpleImplementation()
                 }else if(args(0) == "local"){
