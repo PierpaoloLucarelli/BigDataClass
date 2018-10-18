@@ -181,7 +181,8 @@ object Lab2Implementations{
         
         //top_ds.take(1).foreach(r => println(r.get(1)))
 
-        top_ds.foreach(r => println(r))
+        // top_ds.foreach(r => println(r))
+        top_ds.show()
 
         // top_ds.write.json("~/result/" + System.currentTimeMillis/1000) // change with s3 path
 
@@ -198,28 +199,52 @@ object Lab2Implementations{
 
         Logger.getLogger("org.apache.spark").setLevel(Level.WARN)
 
-        if(args.length == 1){
+        if(args.length == 2){
             
-            println("CONFIG: " + args(0))
-            if(args(0) == "small"){
-                DataframeImp("s3://gdelt-open-data/v2/gkg/20150218230000.gkg.csv", false)
-            }else if(args(0) == "medium"){
-                DataframeImp("s3://gdelt-open-data/v2/gkg/201502*", false)
-            }else if(args(0) == "large"){
-                DataframeImp("s3://gdelt-open-data/v2/gkg/2015*", false)
-            }else if(args(0) == "full"){
-                DataframeImp("s3://gdelt-open-data/v2/gkg/*", false)
-            }else if(args(0) == "hello"){
-                simpleImplementation()
-            }else if(args(0) == "local"){
-                DataframeImp("segment/1_segment", false)
-            }else{
-                println("wrong argument")
-            }
+            println("CONFIG: " + args(0) + ", " + args(1))
+            println("=======================")
+            if(args(1) == "dataset"){
+                if(args(0) == "small"){
+                    DataframeImp("s3://gdelt-open-data/v2/gkg/20150218230000.gkg.csv", false)
+                }else if(args(0) == "medium"){
+                    DataframeImp("s3://gdelt-open-data/v2/gkg/201502*", false)
+                }else if(args(0) == "large"){
+                    DataframeImp("s3://gdelt-open-data/v2/gkg/20150[1-6]*", false)
+                }else if(args(0) == "xlarge"){
+                    DataframeImp("s3://gdelt-open-data/v2/gkg/2015*", false)
+                }else if(args(0) == "full"){
+                    DataframeImp("s3://gdelt-open-data/v2/gkg/*", false)
+                }else if(args(0) == "hello"){
+                    simpleImplementation()
+                }else if(args(0) == "local"){
+                    DataframeImp("segment/1_segment", false)
+                }else{
+                    println("wrong argument")
+                }
+            }else if(args(1) == "rdd"){
+                if(args(0) == "small"){
+                    RDDImp("s3://gdelt-open-data/v2/gkg/20150218230000.gkg.csv", false)
+                }else if(args(0) == "medium"){
+                    RDDImp("s3://gdelt-open-data/v2/gkg/201502*", false)
+                }else if(args(0) == "large"){
+                    RDDImp("s3://gdelt-open-data/v2/gkg/20150[1-6]*", false)
+                }else if(args(0) == "xlarge"){
+                    RDDImp("s3://gdelt-open-data/v2/gkg/2015*", false)
+                }else if(args(0) == "full"){
+                    RDDImp("s3://gdelt-open-data/v2/gkg/*", false)
+                }else if(args(0) == "hello"){
+                    simpleImplementation()
+                }else if(args(0) == "local"){
+                    RDDImp("segment/1_segment", false)
+                }else{
+                    println("wrong argument")
+                }
+            }            
         }else{
             println("NEED TO PROVIDE THE SIZE TO TRY AS AN ARGUMENT (small,medium, large, full, hello)")
         }
         
+        println("=======================")
         println("GOODBYE!")
 
         spark.stop()
