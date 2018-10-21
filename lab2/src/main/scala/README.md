@@ -1,0 +1,1 @@
+# How to run the GDELT analysis on a AWS EMR cluster
