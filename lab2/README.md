@@ -132,7 +132,9 @@ This is probably due to the fact that the Kryo serializer is better suited to be
 
 The metric that we decided to optimize for this exercise was **cost**. The cost metric can be optimized both by improving the speed of the cluster (less cost per job) and by maximizing the resource usage (no waste). 
 
-as we can see form the following graph, there is a lot of unused memory. This resource waste must be minimized in order to save cost. An attempt was made to reduce the memory gap by reducing the number of “slaves” in the cluster. Unfortunately when you reduce the number of nodes, you also reduce the total available CPU of the cluster, therefore there is a limit on how many nodes you can remove from the cluster and still remain cost efficient. 
+as we can see form the following graph, there is a lot of unused memory.
+![comparing scenario 4 to 7.2](https://i.imgur.com/sXYRrkL.png)
+This resource waste must be minimized in order to save cost. An attempt was made to reduce the memory gap by reducing the number of “slaves” in the cluster. Unfortunately when you reduce the number of nodes, you also reduce the total available CPU of the cluster, therefore there is a limit on how many nodes you can remove from the cluster and still remain cost efficient. 
 To find this limit we made some tests, each time using a different number of slave nodes. 
 
 The results of these test can be seen in the table below:
@@ -149,3 +151,5 @@ The results of these test can be seen in the table below:
 As shown from the table, we were able to get the fastest and most cost efficient result by using 18 slave nodes, costing us only $1.37 in 8 minutes.
 
 By reducing the number of slave nodes, we also managed to increase the average load of the cluster by ~12% (from 500 to 560).
+
+![comparing scenario 4 to 7.2](https://i.imgur.com/lDUeQTl.png)
