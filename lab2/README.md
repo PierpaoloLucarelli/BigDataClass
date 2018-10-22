@@ -4,9 +4,9 @@ In this blog post we present a brief description of what we did for running the
 GDELT dataset analysis on Amazon AWS. The topics that we will cover are listed
 below.
 
-* (Deploying the JAR in the cluster)[#deploying-the-jar-in-the-cluster]
-* (Scaling it)[#scaling-it]
-* (Running the full dataset)[#running-the-full-dataset]
+- (Deploying the JAR in the cluster)[#deploying-the-jar-in-the-cluster]
+- (Scaling it)[#scaling-it]
+- (Running the full dataset)[#running-the-full-dataset]
 
 Instructions: The blog post should be a short informal description of your work
 that other students can learn from. Include the things you had to adapt to your
@@ -36,13 +36,10 @@ line. An example of a set of spark submit options that were used is:
 
 TODO: spark submit parameters
 
+
 ## Scaling it
 
-
-## Running the full dataset
-
-
-### Comparing RDD to dataset ###
+### Comparing RDD to dataset
 
 Once the code was packaged and ready to run on Amazon EMR, we began testing by
 running our code with a single machine (master). In this test we ran our code
@@ -90,7 +87,10 @@ configuration:
 After adding this configuration, we were able to analyse the entire dataset in
 8.6 minutes. 
 
-### Improving the speed of the cluster ###
+
+## Running the full dataset
+
+### Improving the speed of the cluster
 
 Some attempts were made to improve the speed of the analysis, by manually
 changing the configuration parameters of the Spark cluster. 
