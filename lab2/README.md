@@ -147,8 +147,13 @@ The results of these test can be seen in the table below:
 | 7.3 | 17 | 10.0 | 1.63 |
 | 7.4 | 15 | 9.5 | 1.37 |
 | 7.5 | 13 | 11.0 | 1.38 |
+As shown from the table, we were able to get the most cost efficient result by using 18 slave nodes, costing us only $1.37 in 8 minutes. If we compare this with our most expenisve run where we used 20 nodes (on demand) of the c4.8xlarge cluster we can see a reduction of cost of **~75%** going from $5.6 to $1.37.
 
-As shown from the table, we were able to get the most cost efficient result by using 18 slave nodes, costing us only $1.37 in 8 minutes.
+| Scenario | Slaves | Time (minutes) | Cost (Dollars) |
+| ------ | ------ | ------ | ------ |
+| On demand c4.8xlarge | 20 | 8.6 | 5.6 |
+
+
 
 By reducing the number of slave nodes, we also managed to increase the average load of the cluster by ~12% (from 500 to 560).
 
