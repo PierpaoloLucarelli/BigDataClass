@@ -65,7 +65,8 @@ Similarly, we did not run our code immediately on a big cluster but limited
 ourselves to using clusters of 2-3 nodes. This allowed us to test our
 application while keeping things simple and the cost low. After several
 attempts, we managed to get the code running on the small cluster, but we
-noticed that when attempting to increase the number of nodes and data, our application was
+noticed that when attempting to increase the number of nodes and data, our
+application was
 failing. This was probably due to the fact that our cluster was not properly
 configured and we were encountering memory issues. 
 
@@ -121,11 +122,14 @@ of the SparkSession object:
 
 The code ran without problems,  however, we did not notice an improvement in
 speed after using the better serializer (7.9 minutes)
-This is probably due to the fact that the Kryo serializer is better suited to be used in conjunction with RDDs and we used datasets.
+This is probably due to the fact that the Kryo serializer is better suited to be
+used in conjunction with RDDs and we used datasets.
 
 ### Optimizing resource usage and cost 
 
-The metric that we decided to optimize for this exercise was **cost**. The cost metric can be optimized both by improving the speed of the cluster (less cost per job) and by maximizing the resource usage (no waste). 
+The metric that we decided to optimize for this exercise was **cost**. The cost
+metric can be optimized both by improving the speed of the cluster (less cost
+per job) and by maximizing the resource usage (no waste). 
 
 as we can see form the following graph, there is a lot of unused memory.
 ![comparing scenario 4 to 7.2](https://i.imgur.com/sXYRrkL.png)
@@ -134,7 +138,8 @@ to reduce the memory gap by reducing the number of “slaves” in the cluster.
 Unfortunately, when the number of nodes is reduced, the total available
 CPU of the cluster is reduced too. Therefore, there is a limit on how many nodes
 can be removed from the cluster while remaining cost efficient. 
-To find this limit we made some tests, each time using a different number of slave nodes. 
+To find this limit we made some tests, each time using a different number of
+slave nodes. 
 
 The results of these test can be seen in the table below:
 
@@ -148,14 +153,20 @@ The results of these test can be seen in the table below:
 | 7.5 | 13 | 11.0 | 1.38 |
 
 
-As can be observed in the table, we were able to get the most cost efficient result by using 18 slave nodes, costing us only $1.37 in 8 minutes. If we compare this with our most expenisve run where we used 20 nodes (on demand) of the c4.8xlarge cluster we can see a reduction of cost of **~75%** going from $5.6 to $1.37.
+As can be observed in the table, we were able to get the most cost efficient
+result by using 18 slave nodes, costing us only $1.37 in 8 minutes. If we
+compare this with our most expenisve run where we used 20 nodes (on demand) of
+the c4.8xlarge cluster we can see a reduction of cost of **~75%** going from
+$5.6 to $1.37.
 
 | Scenario | Slaves | Time (minutes) | Cost (Dollars) |
 | ------ | ------ | ------ | ------ |
 | On demand c4.8xlarge | 20 | 8.6 | 5.6 |
 
-
-
-By reducing the number of slave nodes, we also managed to increase the average load of the cluster by ~12% (from 500 to 560).
+By reducing the number of slave nodes, we also managed to increase the average
+load of the cluster by ~12% (from 500 to 560). Also, the average utilization of
+the cluster went from 43% (20 slave nodes) to 52% (15
+slave nodes). Although this must be taken as a grain of salt, it could imply
+that we are better using the resources that are available.
 
 ![comparing scenario 4 to 7.2](https://i.imgur.com/lDUeQTl.png)
