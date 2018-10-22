@@ -15,12 +15,12 @@ Also include things that didn't work and why you think they didn't work!
 
 ## Deploying the JAR in the cluster
 
-Running a Spark application in a EMR cluster is straight forward and only requires
+Running a Spark application in an EMR cluster is straightforward and only requires
 two changes in the source code.
 
 First, the line that specifies the application master should be commented as its
 value won't be "local" anymore (the new value is "yarn" and AWS sets this
-automatically so there is no need to worry).Second, the paths to the data
+automatically so there is no need to worry). Second, the paths to the data
 segments should be changed as these are no longer stored in the local machine. 
 
 As it is possible to use the same JAR to launch multiple steps on the cluster,
@@ -32,7 +32,7 @@ over again.
 Once the JAR was packaged, we proceeded to test multiple configurations on AWS
 by launching steps with different configurations on the cluster. An important
 parameter that should be added to the spark-submit options is `--class package.className`
-as the code run without it. In the following sections we'll delve deeper into
+as the code run without it. In the following sections, we'll delve deeper into
 the scaling process and implementation details that were important to make it work.
 
 ## Scaling it
@@ -40,22 +40,22 @@ the scaling process and implementation details that were important to make it wo
 ### Comparing RDD to dataset
 
 Once the code was packaged and ready to run on Amazon EMR, we began testing by
-running our code with a single machine (master). In this test we ran our code
+running our code with a single machine (master). In this test, we ran our code
 on a very small dataset just to see if it would run and to determine which way
 to proceed. One of the first things we needed to do was decide whether to use
 the RDD or the dataset Implementation. We ran both the implementations with a
-small dataset and recorded the results. From our tests we observed that the RDD
+small dataset and recorded the results. From our tests, we observed that the RDD
 performed faster only when using a single node, but when we tried to run the
 same code on a larger cluster (~3 nodes) we noticed that the dataset
-implementation was actually faster. For this reason we decided to perform all of
+implementation was actually faster. For this reason, we decided to perform all of
 our future tests using the dataset implementation only. 
 
 ### Testing with increasingly larger datasets ###
 
 Given our limitations and problems with Amazon credits, we needed to start
 testing our application in small datasets and slowly move to bigger datasets
-when positive results are obtained. For this reason we divided our data into 5
-categories. 
+when positive results are obtained. For this reason, we divided our data into 5
+categories.
 
 | Name | Size |
 | ------ | ------ |
@@ -64,12 +64,13 @@ categories.
 | Large [L] | 306.9 GiB | 
 | Extra Large [XL] |  804.9 GiB |
 | Full [F] | 3TB | 
-**<<check this>>**
 
-Similarly, we did not run our code immediately on a big cluster, but limited
+
+Similarly, we did not run our code immediately on a big cluster but limited
 ourselves to using clusters of 2-3 nodes. This allowed us to test our
-application while keeping things simple and the cost low. After several attempts
-we managed to get the code running on the small cluster, but we noticed that
+application while keeping things simple and the cost low. After several
+attempts, we managed to get the code running on the small cluster, but we
+noticed that
 when attempting to increase the number of nodes and data, our application was
 failing. This was probably due to the fact that our cluster was not properly
 configured and we were encountering memory issues. 
@@ -82,7 +83,7 @@ configuration:
 [{"classification":"spark","properties":{"maximizeResourceAllocation":"true"}}]
 ```
 
-After adding this configuration, we were able to analyse the entire dataset in
+After adding this configuration, we were able to analyze the entire dataset in
 8.6 minutes. 
 
 
@@ -90,7 +91,8 @@ After adding this configuration, we were able to analyse the entire dataset in
 
 ### Improving the speed of the cluster
 
-Some attempts were made to improve the speed of the analysis, by manually
+After adding this configuration, we made some attempts to improve the speed of
+the analysis, by manually
 changing the configuration parameters of the Spark cluster. 
 
 Specifically,  the following parameters were tweaked:
@@ -101,14 +103,15 @@ Specifically,  the following parameters were tweaked:
 - Spark.executor.cores
 
 Several values for these properties were used and each time the metrics of the
-process were observed. The fastest time achieved was 7.6 minutes with the
+process was observed. The fastest time achieved was 7.6 minutes with the
 following parameters used: 
 
 - Driver memory: **48407**
 - Executor Memory: **11898**
 - Executor cores: **9**
 - Executor instances: **80**
-- Parallelism: **1440**
+- Parallelism: **1440**ble to analyze the entire dataset in
+8.6 minutes. 
 
 ### Object serialization ###
 
