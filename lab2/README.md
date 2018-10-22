@@ -102,7 +102,7 @@ following parameters used:
 - Executor Memory: **11898**
 - Executor cores: **9**
 - Executor instances: **80**
-- Parallelism: **2160**
+- Parallelism: **1440**
 
 ### Object serialization ###
 
