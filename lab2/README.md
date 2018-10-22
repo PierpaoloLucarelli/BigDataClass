@@ -15,27 +15,25 @@ Also include things that didn't work and why you think they didn't work!
 
 ## Deploying the JAR in the cluster
 
-Running a Spark application in a EMR cluster is straight forward and only needs
-two simple changes in the code for it to work.
+Running a Spark application in a EMR cluster is straight forward and only requires
+two changes in the source code.
 
-First, the code line that specifies the application master should be commented as
-now is not "master" but "yarn" that is used. 
+First, the line that specifies the application master should be commented as its
+value won't be "local" anymore (the new value is "yarn" and AWS sets this
+automatically so there is no need to worry).Second, the paths to the data
+segments should be changed as these are no longer stored in the local machine. 
 
-Second, the paths to the segments should be modified as these are no longer
-local. In order to test the scalability of the application we found very useful
-to use params in the app to be able to test multiple file sizes without having
-to modify the code over and over again. 
+As it is possible to use the same JAR to launch multiple steps on the cluster,
+we found very useful to use parameters in order to control the size of the
+dataset (s, m, l, xl and full) and the implementation (rdd and dataset) to use.
+These helped us to iterate faster as we didn't have to change the code over and
+over again.
 
-TODO: add code 
-
-Once this modifications are in place and the application is packaged into a jar
-its possible to deploy it to the cluster. In our experience, the easiest way to
-do it is by creating a step in the cluster. There it is possible to specify all
-the spark-submit options and jar parameters that one will use in the command
-line. An example of a set of spark submit options that were used is:
-
-TODO: spark submit parameters
-
+Once the JAR was packaged, we proceeded to test multiple configurations on AWS
+by launching steps with different configurations on the cluster. An important
+parameter that should be added to the spark-submit options is `--class package.className`
+as the code run without it. In the following sections we'll delve deeper into
+the scaling process and implementation details that were important to make it work.
 
 ## Scaling it
 
