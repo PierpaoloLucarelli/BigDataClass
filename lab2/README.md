@@ -58,7 +58,7 @@ categories.
 | Medium [M] | 22.6 GiB |
 | Large [L] | 306.9 GiB | 
 | Extra Large [XL] |  804.9 GiB |
-| Full [F] | 3TB | 
+| Full [F] | 3.7TB | 
 
 
 Similarly, we did not run our code immediately on a big cluster but limited
@@ -104,7 +104,7 @@ following parameters used:
 - Executor instances: **80**
 - Parallelism: **1440**
 
-### Object serialization ###
+### Object serialization 
 
 It is possible to configure Spark to use a different serializer than its default
 one. This is called the **Kryo serializer**. 
@@ -123,13 +123,17 @@ The code ran without problems,  however, we did not notice an improvement in
 speed after using the better serializer (7.9 minutes)
 This is probably due to the fact that the Kryo serializer is better suited to be used in conjunction with RDDs and we used datasets.
 
-### Optimising resource usage and cost 
+### Optimizing resource usage and cost 
 
 The metric that we decided to optimize for this exercise was **cost**. The cost metric can be optimized both by improving the speed of the cluster (less cost per job) and by maximizing the resource usage (no waste). 
 
 as we can see form the following graph, there is a lot of unused memory.
 ![comparing scenario 4 to 7.2](https://i.imgur.com/sXYRrkL.png)
-This resource waste must be minimized in order to save cost. An attempt was made to reduce the memory gap by reducing the number of “slaves” in the cluster. Unfortunately when you reduce the number of nodes, you also reduce the total available CPU of the cluster, therefore there is a limit on how many nodes you can remove from the cluster and still remain cost efficient. 
+This resource waste must be minimized in order to save cost. An attempt was made
+to reduce the memory gap by reducing the number of “slaves” in the cluster.
+Unfortunately, when the number of nodes is reduced, the total available
+CPU of the cluster is reduced too. Therefore, there is a limit on how many nodes
+can be removed from the cluster while remaining cost efficient. 
 To find this limit we made some tests, each time using a different number of slave nodes. 
 
 The results of these test can be seen in the table below:
