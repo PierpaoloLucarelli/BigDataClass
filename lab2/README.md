@@ -4,14 +4,9 @@ In this blog post we present a brief description of what we did for running the
 GDELT dataset analysis on Amazon AWS. The topics that we will cover are listed
 below.
 
-- (Deploying the JAR in the cluster)[#deploying-the-jar-in-the-cluster]
-- (Scaling it)[#scaling-it]
-- (Running the full dataset)[#running-the-full-dataset]
-
-Instructions: The blog post should be a short informal description of your work
-that other students can learn from. Include the things you had to adapt to your
-code and cluster to run the entire dataset, and the optimizations you performed.
-Also include things that didn't work and why you think they didn't work!
+- Deploying the JAR in the cluster
+- Scaling it
+- Running the full dataset
 
 ## Deploying the JAR in the cluster
 
