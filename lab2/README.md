@@ -70,8 +70,7 @@ Similarly, we did not run our code immediately on a big cluster but limited
 ourselves to using clusters of 2-3 nodes. This allowed us to test our
 application while keeping things simple and the cost low. After several
 attempts, we managed to get the code running on the small cluster, but we
-noticed that
-when attempting to increase the number of nodes and data, our application was
+noticed that when attempting to increase the number of nodes and data, our application was
 failing. This was probably due to the fact that our cluster was not properly
 configured and we were encountering memory issues. 
 
@@ -83,8 +82,7 @@ configuration:
 [{"classification":"spark","properties":{"maximizeResourceAllocation":"true"}}]
 ```
 
-After adding this configuration, we were able to analyze the entire dataset in
-8.6 minutes. 
+After adding this configuration, we were able to analyze the entire dataset in **8.6 minutes**. 
 
 
 ## Running the full dataset
@@ -92,8 +90,7 @@ After adding this configuration, we were able to analyze the entire dataset in
 ### Improving the speed of the cluster
 
 After adding this configuration, we made some attempts to improve the speed of
-the analysis, by manually
-changing the configuration parameters of the Spark cluster. 
+the analysis, by manually changing the configuration parameters of the Spark cluster. 
 
 Specifically,  the following parameters were tweaked:
 
@@ -103,20 +100,19 @@ Specifically,  the following parameters were tweaked:
 - Spark.executor.cores
 
 Several values for these properties were used and each time the metrics of the
-process was observed. The fastest time achieved was 7.6 minutes with the
+process was observed. The fastest time achieved was **7.6 minutes** with the
 following parameters used: 
 
 - Driver memory: **48407**
 - Executor Memory: **11898**
 - Executor cores: **9**
 - Executor instances: **80**
-- Parallelism: **1440**ble to analyze the entire dataset in
-8.6 minutes. 
+- Parallelism: **1440**
 
 ### Object serialization ###
 
 It is possible to configure Spark to use a different serializer than its default
-one. This is called the Kryo serializer. 
+one. This is called the **Kryo serializer**. 
 
 To use the Kryo serializer, the following lines were added to the configuration
 of the SparkSession object:
@@ -130,10 +126,26 @@ of the SparkSession object:
 
 The code ran without problems,  however, we did not notice an improvement in
 speed after using the better serializer (7.9 minutes)
+This is probably due to the fact that the Kryo serializer is better suited to be used in conjunction with RDDs and we used datasets.
 
-**<<Add why we think this didnt work>>**
+### Optimising resource usage and cost 
 
-### Problems encountered ###
-...
-...
-...
+The metric that we decided to optimize for this exercise was **cost**. The cost metric can be optimized both by improving the speed of the cluster (less cost per job) and by maximizing the resource usage (no waste). 
+
+as we can see form the following graph, there is a lot of unused memory. This resource waste must be minimized in order to save cost. An attempt was made to reduce the memory gap by reducing the number of “slaves” in the cluster. Unfortunately when you reduce the number of nodes, you also reduce the total available CPU of the cluster, therefore there is a limit on how many nodes you can remove from the cluster and still remain cost efficient. 
+To find this limit we made some tests, each time using a different number of slave nodes. 
+
+The results of these test can be seen in the table below:
+
+| Scenario | Slaves | Time (minutes) | Cost (Dollars) |
+| ------ | ------ | ------ | ------ |
+| 7 | 20 | 7.4 | 1.41 |
+| 7.1 | 19 | 7.9 | 1.43 |
+| 7.2 | 18 | 8.0 | 1.37 |
+| 7.3 | 17 | 10.0 | 1.63 |
+| 7.4 | 15 | 9.5 | 1.37 |
+| 7.5 | 13 | 11.0 | 1.38 |
+
+As shown from the table, we were able to get the fastest and most cost efficient result by using 18 slave nodes, costing us only $1.37 in 8 minutes.
+
+By reducing the number of slave nodes, we also managed to increase the average load of the cluster by ~12% (from 500 to 560).
