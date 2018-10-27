@@ -15,8 +15,12 @@
     -   [Assignment](#assignment)
     -   [Deliverables](#deliverables-1)
 -   [Lab 3](#lab-3)
+    -   [Setting up](#setting-up)
+    -   [Assignment](#assignment-1)
     -   [Deliverables](#deliverables-2)
     -   [Questions](#questions-1)
+        -   [General Kafka questions](#general-kafka-questions)
+        -   [Questions specific to the assignment](#questions-specific-to-the-assignment)
 
 Introduction
 ============
@@ -1239,6 +1243,8 @@ histogram of the most popular topics of the last hour that will continuously
 update. We included another visualizer for this lab that you can see in
 fig. 3.
 
+<img src="./images/stream_visualizer.png" alt="Figure 3: Visualizer for the streaming application" id="fig:stream_visualizer" />
+
 Apache Kafka is a distributed streaming platform. The core abstraction is that
 of a message queue, to which you can both publish and subscribe to streams of
 records. Each queue is named by means of a topic. Apache Kafka is:
@@ -1277,7 +1283,15 @@ introduction to the [Kafka stream API can be found
 here](https://docs.confluent.io/current/streams/quickstart.html). We recommend
 you go through the code and examples.
 
-<img src="./images/stream_visualizer.png" alt="Figure 3: Visualizer for the streaming application" id="fig:stream_visualizer" />
+We will again be using Scala for this assignment. Although Kafka’s API is
+completely written in Java, the streams API has been wrapped in a Scala API for
+convenience. You can find the Scala KStreams documentation
+[here](https://developer.lightbend.com/docs/api/kafka-streams-scala/0.2.1/com/lightbend/kafka/scala/streams/KStreamS.html),
+for API docs on the different parts of Kafka, like `StateStores`, please refer
+to [this link](https://kafka.apache.org/20/javadoc/overview-summary.html).
+
+Setting up
+----------
 
 In the lab’s repository you will find a template for your solution. There are a
 bunch of scripts (`.sh` for MacOS/Linux, `.bat` for Windows). For these scripts
@@ -1303,7 +1317,7 @@ The `kafka_start` script does a number of things:
     coordination server, on port 2181
 2.  Start a single Kafka broker on port 9092
 
-Navigate to the GDELTProducer directory, and run `sbt run` to start the GDelt
+Navigate to the GDELTProducer directory, and run `sbt run` to start the GDELT
 stream.
 
 We can now inspect the output of the `gdelt` topic by running the following
@@ -1324,17 +1338,53 @@ Or on Windows cmd:
 
 If you see output appearing, you are now ready to start on the assignment.
 
-You are now tasked with writing an implementation of the histogram server.
+Assignment
+----------
+
+As mentioned before, for this assignment, we will no longer batch process the
+GDELT Global Knowledge Graph, but rather stream it into a pipeline that
+computes a histogram of the last hour. This pipeline is depicted by
+fig. 4. We will give a small description of the individual parts
+below.
+
+<img src="./images/kafka_pipeline.png" alt="Figure 4: GDELT streaming pipeline" id="fig:kafka_pipeline" />
+
+Producer  
+The producer, contained in the `GDELTProducer` Scala project, starts by
+downloading all segments of the previous hour (minus a 15 minute offset), and
+immediately start streaming records (rows) to a Kafka topic called `gdelt`.
+Simultaneously, it will schedule a new download step at the next quarter of the
+hour. The frequency by which the records are streamed is determined as the current
+amount of queued records over the time left until new data is downloaded from
+S3.
+
+Transformer  
+The transformer receives GDELT records on the `gdelt` topic and should use
+them to construct a histogram of the names from the “allNames” column of the
+dataset, but only for the last hour. This is very similar to the application
+you wrote in Lab 1, but it happens in real-time and you should take care to
+also decrement/remove names that are older than an hour (relative to your input
+data). Finally, the transformer’s output should appear on a Kafka topic called
+`gdelt-histogram`.
+
+Consumer  
+The consumer finally acts as a *sink*, and will process the incoming
+histogram updates from the transformer into a smaller histogram of only the 100
+most occurring names for display [5]. It will finally stream this
+histogram to
+our visualizer over a WebSocket connection.
+
+You are now tasked with writing an implementation of the histogram transformer.
 In the file `GDELTStream/GDELTStream.scala` you will have to implement the
 following
 
-`Gdelt row processing`  
+GDELT row processing  
 In the main function you will first have to write a function that filters
 the GDELT lines to a stream of allNames column. You can achieve this using
 the high-level API of Kafka Streams, on the `KStream` object.
 
-`HistogramTransformer`  
-You will have to implement the HistogramTransformer using the
+HistogramTransformer  
+You will have to implement the `HistogramTransformer` using the
 processor/transformer API of kafka streams, to convert the stream of
 allNames into a histogram of the last hour. We suggest you look at [state
 store for Kafka streaming](https://kafka.apache.org/20/documentation/streams/developer-guide/processor-api.html).
@@ -1360,7 +1410,39 @@ Deliverables
 Questions
 ---------
 
-To be posted later!
+Try to be concise with your answers. Some questions have a maximum number of
+words you can use, but you are welcome to use fewer if you can.
+
+### General Kafka questions
+
+1.  What is the difference, in terms of data processing, between Kafka and Spark?
+2.  What is the difference between replications and partitions?
+3.  What is Zookeeper’s role in the Kafka cluster? Why do we need a separate
+    entity for this? (max. 50 words)
+4.  Why does Kafka by default not guarantee *exactly once* delivery semantics
+    on producers? (max. 100 words)
+5.  Kafka is a binary protocol (with a reference implementation in Java),
+    whereas Spark is a framework. Name two (of the many) advantages of Kafka
+    being a binary protocol in the context of Big Data. (max. 100 words)
+
+### Questions specific to the assignment
+
+1.  On average, how many bytes per second does the stream transformer have to
+    consume? How many does it produce?
+2.  Could you use a Java/Scala data structure instead of a Kafka State Store to
+    manage your state in a processor/transformer? Why, or why not?
+    (max. 50 words)
+3.  Given that the histogram is stored in a Kafka `StateStore`, how would you
+    extract the top 100 topics? Is this efficient? (max. 75 words)
+4.  The visualizer draws the histogram in your web browser. A Kafka consumer
+    has to communicate the current ‘state’ of the histogram to this visualizer.
+    What do you think is an efficient way of streaming the ‘state’ of the
+    histogram to the webserver?
+    (max. 75 words)
+5.  What are the two ways you can scale your Kafka implementation over multiple
+    nodes? (max. 100 words)
+6.  How could you use Kafka’s partitioning to compute the histogram in
+    parallel? (max. 100 words)
 
 [1] In case you don’t have a credit card: In previous years, students have
 used prepaid credit cards (available online) to register.
@@ -1380,3 +1462,7 @@ regarding this matter.
 your account is allowed to provision. If you don’t have access to enough
 spot instances, the procedure to request additional can be found in the
 [AWS documentation](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-spot-limits.html).
+
+[5] It might turn out that this is too much for your browser to
+handle. If this is the case, you may change it manually in the
+`HistogramProcessor` contained in `GDELTConsumer.scala`.

@@ -29,6 +29,15 @@ object GDELTStream extends App {
   // only without dates! After this apply the HistogramTransformer. Finally, 
   // write the result to a new topic called gdelt-histogram. 
   val records: KStream[String, String] = builder.stream[String, String]("gdelt")
+  val split = records.map( (key, line) => (key, line.split("\t")))
+  val filtered = split.filter((key, row) => row.length > 23)
+  val data = filtered.map((key, record) => (key, record(23).split(";")))
+  val formatted = data.map((key, words) => (key, words.map(x => x.split(",")(0))))
+  val flat = formatted.flatMapValues(x => x)
+  flat.foreach((key,value) => {
+    println(key)
+    println(value
+  })
 
   val streams: KafkaStreams = new KafkaStreams(builder.build(), props)
   streams.cleanUp()
