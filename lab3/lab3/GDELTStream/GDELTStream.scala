@@ -1,9 +1,11 @@
 package lab3
 
 import java.util.Properties
+import java.util.Date;
 import java.util.concurrent.TimeUnit
 import java.util.Optional
-
+import java.text.SimpleDateFormat
+import java.util.Calendar
 import org.apache.kafka.streams.kstream.{Transformer}
 import org.apache.kafka.streams.processor._
 import org.apache.kafka.streams.scala.ImplicitConversions._
@@ -97,29 +99,23 @@ class HistogramTransformer extends Transformer[String, String, (String, Long)] {
   var state: KeyValueStore[String, Long] = _
 
   // Initialize Transformer object
-  def init(context: ProcessorContext) {
-    
+  def init(context: ProcessorContext){
     this.context = context
     this.state = context.getStateStore("Counts").asInstanceOf[KeyValueStore[String, Long]]
-
-    // this.context.schedule(1000, PunctuationType.STREAM_TIME, (timestamp) => {
-    //   val iter: KeyValueIterator[String, Long] = this.state.all()
-    //   while (iter.hasNext()) {
-    //     val entry: KeyValue[String, Long] = iter.next()
-    //     context.forward(entry.key, entry.value.toString())
-    //   }
-    //   iter.close()
-    //   context.commit()
-
-    // })
-
-
   }
 
   // Should return the current count of the name during the _last_ hour
   def transform(key: String, name: String): (String, Long) = {
+    val df: SimpleDateFormat = new SimpleDateFormat("yyyyMMddHHmm")
     val count: Optional[Long] = Optional.ofNullable(state.get(name))
-    val incrementedCount: Long = count.orElse(0L) + 1
+    val date1: Date  = new Date(context.timestamp)
+    val date2: Date  = df.parse(df.format(Calendar.getInstance().getTime()))
+    var incrementedCount: Long = 0L
+    if((date2.getTime() - date1.getTime()) / 1000 > 3600){
+      incrementedCount = count.orElse(0L) - 1
+    } else{
+      incrementedCount = count.orElse(0L) + 1
+    }
     state.put(name, incrementedCount)
     return (name, incrementedCount)
   }

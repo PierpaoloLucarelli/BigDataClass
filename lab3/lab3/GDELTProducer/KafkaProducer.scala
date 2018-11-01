@@ -15,7 +15,6 @@ import java.util.concurrent.{LinkedBlockingQueue}
 import scala.collection.JavaConversions._
 
 
-
 class KafkaSupplier(queue: LinkedBlockingQueue[File]) extends Runnable {
   val groupId = "producer_check"
   val server = "localhost:9092"
