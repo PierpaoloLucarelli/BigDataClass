@@ -2,6 +2,7 @@ package lab3
 
 import java.util.Properties
 import java.util.concurrent.TimeUnit
+import java.util.Optional
 
 import org.apache.kafka.streams.kstream.{Transformer}
 import org.apache.kafka.streams.processor._
@@ -14,7 +15,9 @@ import org.apache.kafka.streams.{KafkaStreams, StreamsConfig}
 import org.apache.kafka.streams.state.StoreBuilder;
 import org.apache.kafka.streams.state.Stores;
 import org.apache.kafka.streams.state.KeyValueStore;
-
+import org.apache.kafka.streams.state.KeyValueIterator;
+import org.apache.kafka.streams.KeyValue
+import org.apache.kafka.streams.kstream.TransformerSupplier
 import scala.collection.JavaConversions._
 
 
@@ -35,6 +38,15 @@ object GDELTStream extends App {
   // Filter this stream to a stream of (key, name). This is similar to Lab 1,
   // only without dates! After this apply the HistogramTransformer. Finally, 
   // write the result to a new topic called gdelt-histogram. 
+
+    val countStoreSupplier: StoreBuilder[KeyValueStore[String, Long]] =
+    Stores.keyValueStoreBuilder(
+    Stores.persistentKeyValueStore("Counts"),
+    Serdes.String,
+    Serdes.Long)
+    builder.addStateStore(countStoreSupplier);
+
+  // check time format in doc for key 
   val records: KStream[String, String] = builder.stream[String, String]("gdelt")
   val split = records.map( (key, line) => (key, line.split("\t")))
   val filtered = split.filter((key, row) => row.length > 23)
@@ -42,12 +54,24 @@ object GDELTStream extends App {
   val formatted = data.map((key, words) => (key, words.map(x => x.split(",")(0))))
   val flat = formatted.flatMapValues(x => x)
   
-  flat.foreach((key,value) => {
+  // flat.foreach((key,value) => {
+  //   println(key)
+  //   println(value)
+  // })
+
+  // val outputStream = flat.transform(
+  //   new TransformerSupplier() {
+  //     Transformer get() {
+  //       return new HistogramTransformer()
+  //     }
+  //   }, "myTransformState")
+
+  val outputStream = flat.transform(new HistogramTransformer(), "Counts")
+  outputStream.foreach((key,value) => {
     println(key)
     println(value)
   })
-
-  flat.to("gdelt-histogram")
+  outputStream.to("gdelt-histogram")
 
   val streams: KafkaStreams = new KafkaStreams(builder.build(), props)
   streams.cleanUp()
@@ -70,26 +94,43 @@ object GDELTStream extends App {
 // You should implement the Histogram using a StateStore (see manual)
 class HistogramTransformer extends Transformer[String, String, (String, Long)] {
   var context: ProcessorContext = _
-  var countStore: KeyValueStore[String, Long] = _
+  var state: KeyValueStore[String, Long] = _
 
   // Initialize Transformer object
   def init(context: ProcessorContext) {
+    
     this.context = context
-    // Using a `KeyValueStoreBuilder` to build a `KeyValueStore`.
-    val countStoreSupplier: StoreBuilder[KeyValueStore[String, Long]] =
-    Stores.keyValueStoreBuilder(
-    Stores.persistentKeyValueStore("Counts"),
-    Serdes.String,
-    Serdes.Long)
-    this.countStore = countStoreSupplier.build()
+    this.state = context.getStateStore("Counts").asInstanceOf[KeyValueStore[String, Long]]
+
+    // this.context.schedule(1000, PunctuationType.STREAM_TIME, (timestamp) => {
+    //   val iter: KeyValueIterator[String, Long] = this.state.all()
+    //   while (iter.hasNext()) {
+    //     val entry: KeyValue[String, Long] = iter.next()
+    //     context.forward(entry.key, entry.value.toString())
+    //   }
+    //   iter.close()
+    //   context.commit()
+
+    // })
+
+
   }
 
   // Should return the current count of the name during the _last_ hour
   def transform(key: String, name: String): (String, Long) = {
-    ("Donald Trump", 1L)
+    val count: Optional[Long] = Optional.ofNullable(state.get(name))
+    val incrementedCount: Long = count.orElse(0L) + 1
+    state.put(name, incrementedCount)
+    return (name, incrementedCount)
   }
 
   // Close any resources if any
   def close() {
   }
 }
+
+
+  // val windowed: TimeWindowedKStream[String, Long] = records
+  //   .groupByKey 
+  //   .windowedBy(TimeWindows.of(3600000).advanceBy(60000)) 
+  // windowed.count().toStream((k, v) => k.key()).to("gdelt-histogram")
