@@ -55,18 +55,6 @@ object GDELTStream extends App {
   val data = filtered.map((key, record) => (key.substring(0, 12), record(23).split(";")))
   val formatted = data.map((key, words) => (key, words.map(x => x.split(",")(0))))
   val flat = formatted.flatMapValues(x => x)
-  
-  // flat.foreach((key,value) => {
-  //   println(key)
-  //   println(value)
-  // })
-
-  // val outputStream = flat.transform(
-  //   new TransformerSupplier() {
-  //     Transformer get() {
-  //       return new HistogramTransformer()
-  //     }
-  //   }, "myTransformState")
 
   val outputStream = flat.transform(new HistogramTransformer(), "Counts")
   outputStream.foreach((key,value) => {
@@ -111,15 +99,17 @@ class HistogramTransformer extends Transformer[String, String, (String, Long)] {
     val date1: Date  = new Date(context.timestamp)
     val date2: Date  = df.parse(df.format(Calendar.getInstance().getTime()))
     var incrementedCount: Long = 0L
-    if((date2.getTime() - date1.getTime()) / 1000 > 3600){
-      incrementedCount = count.orElse(0L) - 1
-    } else{
+    // if record is within the hour add one to the counter
+    if((date2.getTime() - date1.getTime()) / 1000 < 3600){
       incrementedCount = count.orElse(0L) + 1
+      state.put(name, incrementedCount)
+      // schedule to remove the count after 1 hour
+      this.context.schedule(60000, PunctuationType.WALL_CLOCK_TIME, (timestamp) => {
+        state.put(name, state.get(name)-1)
+      })
     }
-    state.put(name, incrementedCount)
     return (name, incrementedCount)
   }
-
   // Close any resources if any
   def close() {
   }
