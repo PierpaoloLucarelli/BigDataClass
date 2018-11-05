@@ -104,7 +104,7 @@ class HistogramTransformer extends Transformer[String, String, (String, Long)] {
       incrementedCount = count.orElse(0L) + 1
       state.put(name, incrementedCount)
       // schedule to remove the count after 1 hour
-      this.context.schedule(60000, PunctuationType.WALL_CLOCK_TIME, (timestamp) => {
+      this.context.schedule(3600000, PunctuationType.WALL_CLOCK_TIME, (timestamp) => {
         state.put(name, state.get(name)-1)
       })
     }
