@@ -147,6 +147,7 @@ class HistogramTransformer extends Transformer[String, String, (String, Long)] {
 
 
   def transform(key: String, name: String): (String, Long) = {
+<<<<<<< HEAD
     val recordDate: Date  = new Date(context.timestamp)
     val currentDate: Date  = df.parse(df.format(Calendar.getInstance().getTime()))
     
@@ -162,6 +163,22 @@ class HistogramTransformer extends Transformer[String, String, (String, Long)] {
     
     state.put(name, incrementedCount)      
 
+=======
+    val df: SimpleDateFormat = new SimpleDateFormat("yyyyMMddHHmm")
+    val count: Optional[Long] = Optional.ofNullable(state.get(name))
+    val date1: Date  = new Date(context.timestamp)
+    val date2: Date  = df.parse(df.format(Calendar.getInstance().getTime()))
+    var incrementedCount: Long = 0L
+    // if record is within the hour add one to the counter
+    if((date2.getTime() - date1.getTime()) / 1000 < 3600){
+      incrementedCount = count.orElse(0L) + 1
+      state.put(name, incrementedCount)
+      // schedule to remove the count after 1 hour
+      this.context.schedule(3600000, PunctuationType.WALL_CLOCK_TIME, (timestamp) => {
+        state.put(name, state.get(name)-1)
+      })
+    }
+>>>>>>> 1bd8cfda930638c8f243fbd34407eb9bf3f95a2d
     return (name, incrementedCount)
   }
   // Close any resources if any
