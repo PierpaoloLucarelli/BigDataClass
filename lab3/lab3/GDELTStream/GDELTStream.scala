@@ -150,15 +150,16 @@ class HistogramTransformer extends Transformer[String, String, (String, Long)] {
     val recordDate: Date  = new Date(context.timestamp)
     val currentDate: Date  = df.parse(df.format(Calendar.getInstance().getTime()))
     
-    val currentCount: Optional[Long] = Optional.ofNullable(state.get(name)) //TODO: Still getting negative numbers sometimes
+    val currentCount: Optional[Long] = Optional.ofNullable(state.get(name))
     var incrementedCount: Long = currentCount.orElse(0L)
-
-    //println(recordDate.getTime() + "$" + name)
     
     fullLog.put(recordDate.getTime() + "---" + name, name) // This is the windowed log
     
     if ((currentDate.getTime() - recordDate.getTime()) / 1000 < this.TimeWindowWidth) 
       incrementedCount = incrementedCount + 1 
+
+    if (incrementedCount < 0) // This is a temporary fix for the negative values that we are getting sometimes
+      incrementedCount = 0
     
     state.put(name, incrementedCount)      
 
