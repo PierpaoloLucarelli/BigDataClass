@@ -63,7 +63,7 @@ function toggleWebSocket() {
     ws.onmessage = (event) => {console.log(event.data); onUpdate("websocket", JSON.parse(event.data)) }
     ws.onclose = onClose
   }
-  testButton.diabled = !enabled
+  testButton.disabled = !enabled
 }
 
 function onClose() {
