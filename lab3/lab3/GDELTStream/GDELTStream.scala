@@ -30,6 +30,7 @@ object GDELTStream extends App {
     val p = new Properties()
     p.put(StreamsConfig.APPLICATION_ID_CONFIG, "lab3-gdelt-stream")
     p.put(StreamsConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092")
+    p.put(StreamsConfig.METRICS_RECORDING_LEVEL_CONFIG, "DEBUG")
     p
   }
 
@@ -43,20 +44,20 @@ object GDELTStream extends App {
 
   val countStoreSupplier: StoreBuilder[KeyValueStore[String, Long]] =
     Stores.keyValueStoreBuilder(
-    Stores.persistentKeyValueStore("Counts"),
+    Stores.inMemoryKeyValueStore("Counts"),
     Serdes.String,
-    Serdes.Long)
+    Serdes.Long).withLoggingDisabled
 
   val fullLogStoreSupplier: StoreBuilder[KeyValueStore[String, String]] =
     Stores.keyValueStoreBuilder(
-    Stores.persistentKeyValueStore("fullLog"),
+    Stores.inMemoryKeyValueStore("fullLog"),
     Serdes.String,
-    Serdes.String)
+    Serdes.String).withLoggingDisabled
 
   builder.addStateStore(countStoreSupplier);
   builder.addStateStore(fullLogStoreSupplier);
 
-  // check time format in doc for key 
+  // Retrieving and processing the stream
   val records: KStream[String, String] = builder.stream[String, String]("gdelt")
   val split = records.map( (key, line) => (key, line.split("\t")))
   val filtered = split.filter((key, row) => row.length > 23)
@@ -67,11 +68,10 @@ object GDELTStream extends App {
   val outputStream = flat.transform(new HistogramTransformer(), "Counts", "fullLog")
   
   outputStream.foreach((key,value) => {
-    //if(value < 0) {
-        println(key)
-        println(value)
-      //}
+      println(key)
+      println(value)
   })
+
   outputStream.to("gdelt-histogram")
 
   val streams: KafkaStreams = new KafkaStreams(builder.build(), props)
@@ -95,20 +95,19 @@ object GDELTStream extends App {
 // You should implement the Histogram using a StateStore (see manual)
 class HistogramTransformer extends Transformer[String, String, (String, Long)] {
   var context: ProcessorContext = _
-  var state: KeyValueStore[String, Long] = _
-  var fullLog: KeyValueStore[String, String] = _
+  var state: KeyValueStore[String, Long] = _ // Histogram
+  var fullLog: KeyValueStore[String, String] = _ // Windowed log of all messages
 
   val df: SimpleDateFormat = new SimpleDateFormat("yyyyMMddHHmm")
-  val TimeWindowWidth = 60 // 3600 secs for one hour
-  val HistogramRefreshRate = 1000 
+  val TimeWindowWidth = 3600 // 3600 secs for one hour
+  val HistogramRefreshRate = 5000 
 
-  // Initialize Transformer object
   def init(context: ProcessorContext){
     this.context = context
     this.state = context.getStateStore("Counts").asInstanceOf[KeyValueStore[String, Long]]
     this.fullLog = context.getStateStore("fullLog").asInstanceOf[KeyValueStore[String, String]]
       
-    // This updates the window of the histogram each second
+    // Updates the window of the histogram in the specified interval
     this.context.schedule(this.HistogramRefreshRate, PunctuationType.WALL_CLOCK_TIME, (timestamp) => {
       computeHistogram()  
     })
@@ -116,7 +115,7 @@ class HistogramTransformer extends Transformer[String, String, (String, Long)] {
 
   def computeHistogram() = {
     println("Recomputing histogram ...")
-    val recordsIterator = fullLog.all()//.asInstanceOf[KeyValueIterator[String, Long]]
+    val recordsIterator = fullLog.all()
     var count = 0
     val currentDate: Date  = df.parse(df.format(Calendar.getInstance().getTime()))
     while(recordsIterator.hasNext){
@@ -126,25 +125,18 @@ class HistogramTransformer extends Transformer[String, String, (String, Long)] {
         val recordDate: Date  = new Date(recordTimestamp)
         if((currentDate.getTime()  - recordDate.getTime()) / 1000 > this.TimeWindowWidth){ 
           println(record.value + " OUT!") 
-          println("--- name: " + record.value)
-          println("--- value before: " + state.get(record.value))
           state.put(record.value, state.get(record.value)-1) 
-          println("--- value after: " + state.get(record.value))
           fullLog.delete(record.key)        
           context.forward(record.value, state.get(record.value))
         }
       } catch {          
           case e: Exception => {
-            //println(record)
-            //println(e)            
+            println(record)
+            println(e)            
           }
       }
     }     
   }
-
-
-  //def clean
-
 
   def transform(key: String, name: String): (String, Long) = {
     val recordDate: Date  = new Date(context.timestamp)
@@ -153,25 +145,22 @@ class HistogramTransformer extends Transformer[String, String, (String, Long)] {
     val currentCount: Optional[Long] = Optional.ofNullable(state.get(name))
     var incrementedCount: Long = currentCount.orElse(0L)
     
-    fullLog.put(recordDate.getTime() + "---" + name, name) // This is the windowed log
-    
-    if ((currentDate.getTime() - recordDate.getTime()) / 1000 < this.TimeWindowWidth) 
-      incrementedCount = incrementedCount + 1 
+    println("record date: " + recordDate)
+    println("current date: " + currentDate)
 
-    if (incrementedCount < 0) // This is a temporary fix for the negative values that we are getting sometimes
-      incrementedCount = 0
-    
+    if ((currentDate.getTime() - recordDate.getTime()) / 1000 < this.TimeWindowWidth) {
+      fullLog.put(recordDate.getTime() + "---" + name, name) 
+      incrementedCount = incrementedCount + 1 
+    }
+
+    if (incrementedCount < 0) incrementedCount = 0 // Temporary fix for the negative values that appear sometimes
+      
     state.put(name, incrementedCount)      
 
     return (name, incrementedCount)
   }
+
   // Close any resources if any
   def close() {
   }
 }
-
-
-  // val windowed: TimeWindowedKStream[String, Long] = records
-  //   .groupByKey 
-  //   .windowedBy(TimeWindows.of(3600000).advanceBy(60000)) 
-  // windowed.count().toStream((k, v) => k.key()).to("gdelt-histogram")
